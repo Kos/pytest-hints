@@ -1,0 +1,86 @@
+fixture article?
+
+CHecklist
+
+x fixture scope
+- use fixture with a marker
+x yield trick
+x parametrizing
+x two-level fixture trick
+	~ reset selenium after each test
+	~ create redis once, use per test
+- factory fixture
+- mock fixture
+
+
+
+# Introduction
+
+Pytest is quite different from the typical xUnit-based testing framework like Unittest2 or Nose. The most visible changes that brought attention to Pytest:
+
+- good support for `assert` statements
+- tests can be functions; classes are entirely optional & only for grouping
+
+However the real win is fixtures, a mechanism that is a replacement for class methods like setUp, tearDown, setUpClass, or from Javascript world - before(), beforeEach(), afterEach(). Fixtures bring quite a lot of power and flexibility. Let's explore that.
+
+# Replacing JUnit methods with fixtures
+
+In xUnit tests, this is the typical way to prepare preconditions for tests:
+
+- a set of thematically related tests is collected in a TestCase
+- the dependencies for each of the tests are collectively initialised in `setUp` method of the `TestCase` 
+- it's not explicitly stated which test belongs on which code from `setUp`, but they typically share a lot - otherwise the `TestCase` would get split into two.
+
+In Pytest, the approach is different:
+
+- each test declares in its parameters what kind of preconditions it wants to use,
+- each precondition is declared elsewhere as a `pytest` fixture
+
+The fixture function is called once for each test that needs it, unless a different scope is requested. This means that a fixture can act like `setUp` or `setUpClass` depending on how you write it, and the test code still looks the same.
+
+Fixtures are normally written in the same file that the tests that use them. But you also have generic fixtures that are helpful in multiple tests - these should be placed in a `conftest.py` file in appropriate module. This tells `pytest` to make the fixture available to all tests in the `conftest`'s own package and its sub-packages. (Or you could extract the fixture to a separate reusable plugin!)
+
+Fixtures can have dependencies too:
+
+    @pytest.fixture
+    def my_system(database):
+        ...
+
+In this case each test that depends on `my_system` fixture will also implicitly depend on the `database` fixture.
+
+If the resources initialised in `setUp` need any special cleanup, then the code usually gets more complex. Pytest way of doing test teardown is to have the resource cleanup code in the same place as initialisation code - directly in the fixture. This also allows you to clean up using try/finally or a context manager.
+
+This is very helpful especially when multiple resources are initialised. It's difficult to ensure that `tearDown` works properly if `setUp` fails in the middle. In Pytest this doesn't happen as often because (by convention) each resource gets its own fixture.
+
+# Parametrization
+
+Pytest gives you an easy way to parametrize a test with the `pytest.mark.parametrize` decorator.
+
+In this example, each run of `test_spellchecker` creates its own fresh instance of `SpellChecker` class, but the lexicon is loaded only once per test run. Isolating large large, immutable resources in their own fixtures allow you to easily avoid loading them over and over for each test: pytest is smart enough to know when to load and unload the resource, depending on which tests you run.
+
+The example also shows that test parameters could mean different things in practice. The parameters that don't come from parametrisation, must come from fixtures. This can be a little confusing.
+
+Fixtures can be parametrised too! The syntax is a bit awkward, but it's a helpful tool to have. The use case is when you'd like to run a large set of tests in multiple configurations - for example, run the whole selenium test suite with different browsers.
+
+All the complexity is encapsulated in the fixtures, so the test code is made as simple as possible - it only declares that it needs a webdriver. This is good because tests should be readable!
+
+# Fixture scope &  Two level fixture trick
+
+Fixtures can have different scopes:
+
+- test (default): the resource is created for each single test. (If the test is parametrised, every parameter combination counts as a separate test.)
+- class (if you choose to use classes)
+- module (one file with tests)
+- session (one pytest invocation)
+
+Fixtures cannot depend on fixtures with finer scope, so a fixture of session scope cannot depend on a fixture of test scope. (How would it even work?)
+
+For lightweight resources it doesn't hurt to use per-test fixtures, but if you're loading a lot of data or connecting to external services, then you probably don't want that to happen per every test. However, if you reuse a stateful resource between tests, there's risk that the test isolation will break! Side effects from one test can affect others. 
+
+There's ways around that though. For example if you'd like to start the browser once per session, but have a fresh selenium window for each test:
+
+Or if you'd like to connect to a database once per session, but have it cleaned after each test, that's simple too:
+
+Or if you're testing a Django application with local memory cache, but would like to use an actual Redis-based cache configured for these specific tests, but still start Redis only once (and only if needed):
+
+This example shows fixtures' flexibility: you can mix and match various fixtures in your tests, without worrying about a particular way to group the tests into classes.
