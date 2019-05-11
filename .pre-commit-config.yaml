@@ -1,0 +1,14 @@
+repos:
+- repo: https://github.com/ambv/black
+  rev: 19.3b0
+  language_version: python3.6
+  hooks:
+  - id: black
+    # Black doesnt respect pyproject.toml when invoked with specific files,
+    # see https://github.com/ambv/black/issues/395
+    # Workaround: duplicate (some) patterns from there.
+    # (Luckily we only care about versioned files for pre-commit.)
+    exclude: >
+      (?x)(
+          /snapshots/snap_.*\.py$
+      ).*

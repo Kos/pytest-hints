@@ -1,5 +1,6 @@
 import unittest
 
+
 def func(arg):
     return arg * 2
 

@@ -14,18 +14,21 @@ class WebDriver:
 
     pages = {
         "https://example.com": "Hello! I am the homepage",
-        "https://example.com/about": "About us: We write tests"
+        "https://example.com/about": "About us: We write tests",
     }
+
 
 def create_webdriver(browser_name):
     """create a new browser instance and return it"""
     return WebDriver()
 
-@pytest.fixture(scope="module", params=['firefox', 'chrome', 'edge', 'safari'])
+
+@pytest.fixture(scope="module", params=["firefox", "chrome", "edge", "safari"])
 def browser_name(request):
     # `request` is a special value provided by pytest
     # that lets you see the test metadata
     return request.param
+
 
 @pytest.fixture(scope="module")
 def webdriver(browser_name):
@@ -37,7 +40,7 @@ def webdriver(browser_name):
 
 
 def test_homepage(webdriver):
-    webdriver.open('https://example.com')
+    webdriver.open("https://example.com")
     assert "Hello!" in webdriver.text
 
 
