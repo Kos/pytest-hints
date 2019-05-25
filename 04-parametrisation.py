@@ -8,19 +8,26 @@ class SpellChecker:
     def __init__(self, lexicon: Set[str]):
         self.lexicon = lexicon
 
-    def text_is_valid(self, input: str):
-        return all(self._cleanup_word(word) in self.lexicon for word in input.split())
+    def text_is_valid(self, text: str):
+        text_words = (self._cleanup_word(word) for word in text.split())
+        return all(word in self.lexicon for word in text_words)
 
     def _cleanup_word(self, word):
         return word.strip(string.punctuation).lower()
 
 
 @pytest.mark.parametrize(
-    ("input", "expected_output"), [("Hello, world!", True), ("Ehllo, world!", False)]
+    ("text", "expected_result"),
+    [
+        ("hello world", True),
+        ("Hello, world!", True),
+        ("Helllo, world!", False),
+        ("adsfasdf", False),
+    ],
 )
-def test_spellchecker(lexicon, input, expected_output):
+def test_spellchecker(lexicon, text, expected_result):
     checker = SpellChecker(lexicon)
-    assert checker.text_is_valid(input) == expected_output
+    assert checker.text_is_valid(text) == expected_result
 
 
 @pytest.fixture(scope="session")
