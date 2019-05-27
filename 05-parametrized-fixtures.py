@@ -1,29 +1,10 @@
+from time import sleep
+
 import pytest
+from selenium.webdriver import Firefox, Chrome
 
 
-class WebDriver:
-    def open(self, url):
-        self.url = url
-
-    def close(self):
-        ...
-
-    @property
-    def text(self):
-        return self.pages[self.url]
-
-    pages = {
-        "https://example.com": "Hello! I am the homepage",
-        "https://example.com/about": "About us: We write tests",
-    }
-
-
-def create_webdriver(browser_name):
-    """create a new browser instance and return it"""
-    return WebDriver()
-
-
-@pytest.fixture(scope="module", params=["firefox", "chrome", "edge", "safari"])
+@pytest.fixture(scope="module", params=["firefox", "chrome"])
 def browser_name(request):
     # `request` is a special value provided by pytest
     # that lets you see the test metadata
@@ -31,19 +12,33 @@ def browser_name(request):
 
 
 @pytest.fixture(scope="module")
-def webdriver(browser_name):
-    webdriver_instance = create_webdriver(browser_name)
+def webdriver_instance(browser_name):
+    if browser_name == "firefox":
+        driver = Firefox()
+    elif browser_name == "chrome":
+        driver = Chrome()
+
+    try:
+        yield driver
+    finally:
+        driver.close()
+
+
+@pytest.fixture
+def webdriver(webdriver_instance):
     try:
         yield webdriver_instance
+        sleep(0.5)
     finally:
-        webdriver_instance.close()
+        webdriver_instance.delete_all_cookies()
+        webdriver_instance.get("about:blank")
 
 
-def test_homepage(webdriver):
-    webdriver.open("https://example.com")
-    assert "Hello!" in webdriver.text
+def test_example_site(webdriver):
+    webdriver.get("https://example.com")
+    assert "illustrative examples" in webdriver.page_source
 
 
-def test_about_page(webdriver):
-    webdriver.open("https://example.com/about")
-    assert "About us" in webdriver.text
+def test_pywaw(webdriver):
+    webdriver.get("http://pywaw.org")
+    assert "cykliczne spotkania pasjonatów" in webdriver.page_source
