@@ -20,20 +20,16 @@ def webdriver_instance(browser_name):
     else:
         raise Exception(f"Unsupported browser: {browser_name}")
 
-    try:
-        yield driver
-    finally:
-        driver.close()
+    yield driver
+    driver.close()
 
 
 @pytest.fixture
 def webdriver(webdriver_instance):
-    try:
-        yield webdriver_instance
-        sleep(0.5)
-    finally:
-        webdriver_instance.delete_all_cookies()
-        webdriver_instance.get("about:blank")
+    yield webdriver_instance
+    sleep(0.5)
+    webdriver_instance.delete_all_cookies()
+    webdriver_instance.get("about:blank")
 
 
 def test_example_site(webdriver):
