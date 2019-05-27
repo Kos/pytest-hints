@@ -4,8 +4,8 @@ import pytest
 
 class TestFiles(unittest.TestCase):
     def setUp(self):
-        self.file1 = open("01-junit.py")
-        self.file2 = open("02-replacing.py")
+        self.file1 = open("01_junit.py")
+        self.file2 = open("02_replacing.py")
 
     def tearDown(self):
         self.file2.close()
@@ -25,14 +25,14 @@ def test_line_count(file1, file2):
 
 @pytest.fixture
 def file1():
-    with open("01-junit.py") as f:
+    with open("01_junit.py") as f:
         yield f
 
 
 @pytest.fixture
 def file2():
     # If there's no context manager, you can be more verbose:
-    f = open("02-replacing.py")
+    f = open("02_replacing.py")
     try:
         yield f
     finally:
