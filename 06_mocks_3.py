@@ -41,15 +41,10 @@ class RequestsMock:
 
 
 @pytest.fixture
-def mock_requests(monkeypatch):
+def mock_requests(monkeypatch) -> RequestsMock:
     request_mock = RequestsMock()
     monkeypatch.setattr(requests.Session, "request", request_mock.request)
     return request_mock
-
-
-@pytest.fixture
-def captured_requests(mock_requests):
-    return mock_requests.captured_requests
 
 
 def get_image_urls(url):
@@ -59,8 +54,8 @@ def get_image_urls(url):
     return [image["src"] for image in images if image["src"]]
 
 
-def test_get_image_urls_3(captured_requests):
+def test_get_image_urls_2(mock_requests):
     assert ["cat1.png", "cat2.png"] == get_image_urls("http://cats.example.com")
-    assert len(captured_requests) == 1
-    assert captured_requests[0].method == "get"
-    assert captured_requests[0].url == "http://cats.example.com"
+    assert len(mock_requests.captured_requests) == 1
+    assert mock_requests.captured_requests[0].method == "get"
+    assert mock_requests.captured_requests[0].url == "http://cats.example.com"
