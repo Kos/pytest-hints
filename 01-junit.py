@@ -7,4 +7,4 @@ def func(arg):
 
 class FuncTest(unittest.TestCase):
     def test_func(self):
-        assert func(10) == 25
+        assert func(10) == 20
