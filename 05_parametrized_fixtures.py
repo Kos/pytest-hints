@@ -17,6 +17,8 @@ def webdriver_instance(browser_name):
         driver = Firefox()
     elif browser_name == "chrome":
         driver = Chrome()
+    else:
+        raise Exception(f"Unsupported browser: {browser_name}")
 
     try:
         yield driver
