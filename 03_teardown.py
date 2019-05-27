@@ -1,39 +1,61 @@
+import subprocess
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import BinaryIO
+
 import pytest
 
 
 class TestFiles(unittest.TestCase):
     def setUp(self):
-        self.file1 = open("01_junit.py")
-        self.file2 = open("02_replacing.py")
+        # Prepare dependencies for the test.
+        # Dependencies can be anything: plain objects, files, connections...
+        self.some_file = open("01_junit.py", "r")
+        self.temp_directory = TemporaryDirectory()
 
     def tearDown(self):
-        self.file2.close()
-        self.file1.close()
+        # Clean up all the dependencies in order.
+        self.temp_directory.cleanup()
+        self.some_file.close()
 
-    def test_line_count(self):
-        count1 = len(self.file1.readlines())
-        count2 = len(self.file2.readlines())
-        assert count2 > count1
+    def test_gzip_file(self):
+        subprocess.run(
+            "gzip > output.gz",
+            cwd=self.temp_directory.name,
+            stdin=self.some_file,
+            shell=True,
+        )
+        new_file: Path = Path(self.temp_directory.name) / "output.gz"
+        assert new_file.exists()
+        assert file_type(new_file) == "application/gzip; charset=binary"
 
 
-def test_line_count(file1, file2):
-    count1 = len(file1.readlines())
-    count2 = len(file2.readlines())
-    assert count2 > count1
+def file_type(path: Path) -> str:
+    cmd = ["file", "-ib", path]
+    proc = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, encoding="ascii")
+    return proc.stdout.strip()
+
+
+# with pytest:
+
+
+def test_gzip_file(some_file: BinaryIO, temp_directory: Path):
+    subprocess.run(
+        "gzip > output.gz", cwd=str(temp_directory), stdin=some_file, shell=True
+    )
+    new_file: Path = temp_directory / "output.gz"
+    assert new_file.exists()
+    assert file_type(new_file) == "application/gzip; charset=binary"
 
 
 @pytest.fixture
-def file1():
-    with open("01_junit.py") as f:
+def some_file() -> BinaryIO:
+    with open("01_junit.py", "r") as f:
         yield f
 
 
 @pytest.fixture
-def file2():
-    # If there's no context manager, you can be more verbose:
-    f = open("02_replacing.py")
-    try:
-        yield f
-    finally:
-        f.close()
+def temp_directory() -> Path:
+    with TemporaryDirectory() as tempdir:
+        yield Path(tempdir)
