@@ -1,6 +1,7 @@
 import unittest
-import pytest
 from typing import List
+
+# TODO: rewrite to Pytest
 
 
 class Hero:
@@ -33,26 +34,3 @@ class HeroTestCase(unittest.TestCase):
         self.hero.add_exp(2500)
         self.hero.add_exp(200)
         self.assertEqual(2700, self.hero.exp)
-
-
-@pytest.fixture
-def hero():
-    return Hero("Merlin")
-
-
-def test_hero_initial_level(hero):
-    """Hero should have initial level = 1"""
-    assert 1 == hero.level
-
-
-def test_hero_award_exp(hero):
-    """Hero should accumulate exp"""
-    hero.add_exp(2500)
-    assert 3 == hero.level
-
-
-def test_hero_level_up(hero):
-    """Hero level should increase when levelling up"""
-    hero.add_exp(2500)
-    hero.add_exp(200)
-    assert 2700 == hero.exp

@@ -3,33 +3,17 @@ from time import sleep
 import pytest
 from selenium.webdriver import Firefox, Chrome
 
-
-@pytest.fixture(scope="module", params=["firefox", "chrome"])
-def browser_name(request):
-    # `request` is a special value provided by pytest
-    # that lets you see the test metadata
-    return request.param
-
-
-@pytest.fixture(scope="module")
-def webdriver_instance(browser_name):
-    if browser_name == "firefox":
-        driver = Firefox()
-    elif browser_name == "chrome":
-        driver = Chrome()
-    else:
-        raise Exception(f"Unsupported browser: {browser_name}")
-
-    yield driver
-    driver.close()
+# TODO: run multiple browsers
+# TODO: make sure the browser is efficeint
+# TODO: make sure each test gets the browser in a clean state
 
 
 @pytest.fixture
-def webdriver(webdriver_instance):
+def webdriver():
+    webdriver_instance = Firefox()
     yield webdriver_instance
     sleep(0.5)
-    webdriver_instance.delete_all_cookies()
-    webdriver_instance.get("about:blank")
+    webdriver_instance.close()
 
 
 def test_example_site(webdriver):
