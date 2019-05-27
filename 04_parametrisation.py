@@ -1,7 +1,8 @@
-from pathlib import Path
 import string
-import pytest
+from pathlib import Path
 from typing import Set
+
+import pytest
 
 
 class SpellChecker:
@@ -9,11 +10,12 @@ class SpellChecker:
         self.lexicon = lexicon
 
     def text_is_valid(self, text: str):
-        text_words = (self._cleanup_word(word) for word in text.split())
+        text_words = (_cleanup_word(word) for word in text.split())
         return all(word in self.lexicon for word in text_words)
 
-    def _cleanup_word(self, word):
-        return word.strip(string.punctuation).lower()
+
+def _cleanup_word(word):
+    return word.strip(string.punctuation).lower()
 
 
 @pytest.mark.parametrize(
@@ -32,4 +34,5 @@ def test_spellchecker(lexicon, text, expected_result):
 
 @pytest.fixture(scope="session")
 def lexicon():
-    return set(Path("wordlist.txt").read_text().splitlines())
+    wordlist_path = Path(__file__).parent / "wordlist.txt"
+    return set(wordlist_path.read_text().splitlines())
